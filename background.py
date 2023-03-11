@@ -5,8 +5,10 @@ MAX_SCORE = 6000
 START_SCORE = 1
 JAPANESE_HEADER = "English"
 ENGLISH_HEADER = "Japanese"
+READING_HEADER = "English"
 JP_SENTENCE_HEADER = "English Sentence"
 ENG_SENTENCE_HEADER = "Japanese Example"
+READ_SENTENCE_HEADER = "English Sentence"
 L_SCORE_HEADER = "speaking score"
 S_SCORE_HEADER = "listening score"
 
@@ -94,7 +96,7 @@ def load_reading_dictionary(filename, sep = "\t"):
     i = 1
     for index, row in x.iterrows():
         this_score = row[R_SCORE_HEADER]
-        dictionary[this_score].append([row[KANJI_HEADER],row[ENGLISH_HEADER],row[E_SENT_HEADER],row[E_SENT_R_HEADER],row[ENG_SENTENCE_HEADER],row[W_SCORE_HEADER],row[R_HEADER]])
+        dictionary[this_score].append([row[KANJI_HEADER],row[READING_HEADER],row[E_SENT_HEADER],row[E_SENT_R_HEADER],row[READ_SENTENCE_HEADER],row[W_SCORE_HEADER],row[R_HEADER]])
         i = i + 1
         
     score_weights = update_weights(dictionary, i )
@@ -112,7 +114,7 @@ def format_to_table_reading(scored_dictionary):
             thisRow.append(eachScore)
             values.update({i:thisRow})
             i = i + 1
-    return(pd.DataFrame(values.values(),columns=[KANJI_HEADER, ENGLISH_HEADER, E_SENT_HEADER, E_SENT_R_HEADER, ENG_SENTENCE_HEADER,W_SCORE_HEADER,R_HEADER,R_SCORE_HEADER]))
+    return(pd.DataFrame(values.values(),columns=[KANJI_HEADER, READING_HEADER, E_SENT_HEADER, E_SENT_R_HEADER, READ_SENTENCE_HEADER,W_SCORE_HEADER,R_HEADER,R_SCORE_HEADER]))
 
 def load_writing_dictionary(filename, sep = "\t"):
     x = read_table(filepath_or_buffer=filename, delimiter=sep)
@@ -127,7 +129,7 @@ def load_writing_dictionary(filename, sep = "\t"):
         this_score = row[W_SCORE_HEADER]
         if (row[R_SCORE_HEADER] < MIN_SCORE):
             this_score = 0
-        dictionary[this_score].append([row[KANJI_HEADER],row[ENGLISH_HEADER],row[E_SENT_HEADER],row[E_SENT_R_HEADER],row[ENG_SENTENCE_HEADER],row[R_SCORE_HEADER],row[R_HEADER]])
+        dictionary[this_score].append([row[KANJI_HEADER],row[READING_HEADER],row[E_SENT_HEADER],row[E_SENT_R_HEADER],row[READ_SENTENCE_HEADER  ],row[R_SCORE_HEADER],row[R_HEADER]])
         i = i + 1
         
     score_weights = update_weights(dictionary, i )
@@ -145,7 +147,8 @@ def format_to_table_writing(scored_dictionary):
             thisRow.append(eachScore)
             values.update({i:thisRow})
             i = i + 1
-    return(pd.DataFrame(values.values(),columns=[KANJI_HEADER, ENGLISH_HEADER, E_SENT_HEADER, E_SENT_R_HEADER, ENG_SENTENCE_HEADER,R_SCORE_HEADER,R_HEADER,W_SCORE_HEADER]))
+    return(pd.DataFrame(values.values(),columns=[KANJI_HEADER, READING_HEADER, E_SENT_HEADER, E_SENT_R_HEADER, READ_SENTENCE_HEADER,R_SCORE_HEADER,R_HEADER,W_SCORE_HEADER]))
+
 
 def get_card(current_score, last_score, my_scored_cards, score_weights):
    # print(current_score)
@@ -155,13 +158,7 @@ def get_card(current_score, last_score, my_scored_cards, score_weights):
     
     else:
         selected = False
-        if (selected == False and last_score != 0 and last_score != START_SCORE) and not my_scored_cards[0] == []:
-            current_card = my_scored_cards[0][0]
-            current_score = 0
-            selected = True
-            #print("This is " + str(current_score) + "not" + str(last_score))
-        else:
-            current_score = START_SCORE
+        
         while current_score < len(score_weights) - 1 and not selected:
             current_score = current_score + 1
             if current_score != last_score and not my_scored_cards[current_score] == []:
@@ -173,6 +170,14 @@ def get_card(current_score, last_score, my_scored_cards, score_weights):
         elif selected == False and not my_scored_cards[MAX_SCORE] == []:
             current_card = my_scored_cards[MAX_SCORE][0]
             current_score = last_score
+        elif (selected == False and last_score != 0 and last_score != START_SCORE) and not my_scored_cards[0] == []:
+            current_card = my_scored_cards[0][0]
+            current_score = 0
+            selected = True
+            #print("This is " + str(current_score) + "not" + str(last_score))
+        elif selected == False and my_scored_cards[START_SCORE] == []:
+            current_score = START_SCORE
+            current_card = my_scored_cards[START_SCORE][0]
         elif selected == True:
             pass
         else:
@@ -180,6 +185,7 @@ def get_card(current_score, last_score, my_scored_cards, score_weights):
             current_score = last_score
             #print("***")
     return current_score, current_card
+
 def get_card_advanced(current_score, last_score, my_scored_cards, score_weights):
     #print(current_score)
     state = "GOOD"
